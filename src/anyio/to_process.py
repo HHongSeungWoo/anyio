@@ -7,7 +7,7 @@ import sys
 from collections import deque
 from collections.abc import Callable
 from importlib.util import module_from_spec, spec_from_file_location
-from typing import TypeVar, cast
+from typing import TypeVar, cast, IO, Any
 
 from ._core._eventloop import current_time, get_async_backend, get_cancelled_exc_class
 from ._core._exceptions import BrokenWorkerProcess
@@ -40,6 +40,7 @@ async def run_sync(
     *args: Unpack[PosArgsT],
     cancellable: bool = False,
     limiter: CapacityLimiter | None = None,
+    stderr: int | IO[Any] | None = subprocess.PIPE,
 ) -> T_Retval:
     """
     Call the given function with the given arguments in a worker process.
@@ -140,7 +141,7 @@ async def run_sync(
         else:
             command = [sys.executable, "-u", "-m", __name__]
             process = await open_process(
-                command, stdin=subprocess.PIPE, stdout=subprocess.PIPE
+                command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=stderr
             )
             try:
                 stdin = cast(ByteSendStream, process.stdin)
